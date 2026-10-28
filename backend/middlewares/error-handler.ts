@@ -15,6 +15,12 @@ export function errorHandler(err: Error, req: Request, res: Response, next: Next
     return;
   }
 
+  // body-parser (express.json) marca así el JSON mal formado
+  if ((err as Error & { type?: string }).type === 'entity.parse.failed') {
+    res.status(400).json({ error: 'El cuerpo de la petición no es un JSON válido' });
+    return;
+  }
+
   console.error(err);
   res.status(500).json({ error: 'Error interno del servidor' });
 }

@@ -1,5 +1,6 @@
 import express from 'express';
 import { errorHandler } from './middlewares/error-handler';
+import { rutaNoEncontrada } from './middlewares/ruta-no-encontrada';
 
 // productos
 import { ProductosRepository } from './repositories/productos.repository';
@@ -36,6 +37,7 @@ app.use('/api/productos', productosRoutes);
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/reportes', reportesRoutes);
 
+app.use(rutaNoEncontrada);
 app.use(errorHandler);
 
 export default app;

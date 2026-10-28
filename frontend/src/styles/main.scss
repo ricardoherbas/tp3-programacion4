@@ -1,0 +1,12 @@
+// 1- colores de la cafeteria ANTES de importar Bootstrap
+$cafe-espresso: #3b2418;
+$cafe-crema: #f5ede3;
+$cafe-caramelo: #b8763e;
+
+$primary: $cafe-caramelo;
+$secondary: $cafe-espresso;
+$body-bg: $cafe-crema;
+$body-color: $cafe-espresso;
+
+// 2-bootstrap (toma las variables de arriba)
+@import "bootstrap/scss/bootstrap";

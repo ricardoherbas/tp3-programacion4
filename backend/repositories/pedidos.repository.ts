@@ -1,5 +1,6 @@
 ﻿import conexionDB from "../config/conexion-db";
 import { Pedido, NuevoPedido, EstadoPedido } from "../models/pedido";
+import { AppError } from "../middlewares/error-handler";
 
 export interface PedidosRepository {
   crear(datos: NuevoPedido): Promise<Pedido>;
@@ -53,6 +54,9 @@ export class PedidosRepositoryPg implements PedidosRepository {
       };
     } catch (error) {
       await client.query("ROLLBACK");
+      if (this.esMesaInexistente(error)) {
+        throw new AppError(`Mesa ${datos.mesaId} no encontrada`, 404);
+      }
       throw error;
     } finally {
       client.release();
@@ -74,6 +78,12 @@ export class PedidosRepositoryPg implements PedidosRepository {
 
   async actualizarEstado(id: number, estado: EstadoPedido): Promise<void> {
     await conexionDB.query("UPDATE pedidos SET estado = $1 WHERE id = $2", [estado, id]);
+  }
+
+  // 23503 = violación de clave foránea; fk_pedido_mesa es el constraint de pedidos.mesa_id en init.sql
+  private esMesaInexistente(error: unknown): boolean {
+    const e = error as { code?: string; constraint?: string };
+    return e?.code === "23503" && e.constraint === "fk_pedido_mesa";
   }
 
   // Convierte las filas planas del JOIN (una por ítem) en objetos Pedido con sus items adentro

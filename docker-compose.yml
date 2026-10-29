@@ -23,6 +23,7 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       PORT: 3000
+      NODE_ENV: ${NODE_ENV:-development}
     ports:
       - "${PORT:-3000}:3000"
     depends_on:

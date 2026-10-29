@@ -1,3 +1,4 @@
+// test
 import express from 'express';
 import { errorHandler } from './middlewares/error-handler';
 import { rutaNoEncontrada } from './middlewares/ruta-no-encontrada';
@@ -16,6 +17,7 @@ import { crearPedidosRoutes } from './routes/pedidos.routes';
 
 // reportes
 import reportesRoutes from './routes/reportes.routes';
+import { crearTestRoutes } from './routes/test.routes';
 
 const app = express();
 
@@ -36,6 +38,11 @@ const pedidosRoutes = crearPedidosRoutes(pedidosController);
 app.use('/api/productos', productosRoutes);
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/reportes', reportesRoutes);
+
+// solo para los tests (E2E): borrar y cargar datos fijos
+if (process.env.NODE_ENV === 'test') {
+    app.use('/__test__', crearTestRoutes());
+}
 
 app.use(rutaNoEncontrada);
 app.use(errorHandler);

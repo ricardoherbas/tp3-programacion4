@@ -44,6 +44,15 @@ describe("POST /api/pedidos", () => {
 
     expect(res.status).toBe(404);
   });
+
+  it("responde 404 si la mesa no existe", async () => {
+    const res = await request(app)
+      .post("/api/pedidos")
+      .send({ mesaId: 9999, items: [{ productoId: MUFFIN, cantidad: 1 }] });
+
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ error: "Mesa 9999 no encontrada" });
+  });
 });
 
 describe("GET /api/pedidos", () => {

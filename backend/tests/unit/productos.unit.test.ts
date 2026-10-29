@@ -159,3 +159,21 @@ describe('Productos - Cálculo de precios', () => {
     });
   });
 });
+
+
+describe('Serialización de productos', () => {
+  it('debe exponer el precio calculado y el tipo en el JSON', () => {
+    const producto = new Pasteleria(
+      19,
+      'Muffin de chocolate',
+      2500
+    );
+
+    expect(JSON.parse(JSON.stringify(producto))).toEqual({
+      id: 19,
+      nombre: 'Muffin de chocolate',
+      precio: 2500,
+      tipo: 'pasteleria',
+    });
+  });
+});

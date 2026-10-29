@@ -1,3 +1,4 @@
+
 import { Producto } from './producto';
 import { Variedad } from './variedad';
 
@@ -11,6 +12,10 @@ export class Filtrado extends Producto {
     public variedad: Variedad
   ) {
     super(id, nombre, precioBase);
+  }
+
+  get tipo(): 'filtrado' {
+    return 'filtrado';
   }
 
   calcularPrecio(): number {

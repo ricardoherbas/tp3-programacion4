@@ -1,3 +1,4 @@
+
 export abstract class Producto {
   constructor(
     public id: number,
@@ -6,4 +7,15 @@ export abstract class Producto {
   ) {}
 
   abstract calcularPrecio(): number;
+
+  abstract get tipo(): 'expreso' | 'filtrado' | 'pasteleria';
+
+  toJSON() {
+    return {
+      id: this.id,
+      nombre: this.nombre,
+      precio: this.calcularPrecio(),
+      tipo: this.tipo,
+    };
+  }
 }

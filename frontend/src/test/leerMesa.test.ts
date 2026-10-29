@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { leerMesa } from "./leerMesa";
+import { leerMesa } from "../mesa/leerMesa";
 
 describe("leerMesa", () => {
     it("devuelve el número cuando viene ?mesa=N", () => {

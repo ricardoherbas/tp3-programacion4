@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { EncabezadoMesa } from "./EncabezadoMesa";
+import { EncabezadoMesa } from "../mesa/EncabezadoMesa";
 
 describe("EncabezadoMesa", () => {
     it("muestra el nombre de la cafetería como título", () => {

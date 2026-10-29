@@ -22,4 +22,17 @@ export class Filtrado extends Producto {
     return this.precioBase +
       this.gramosCafe * this.variedad.precioPorGramo;
   }
+
+  toJSON() {
+    return {
+      ...super.toJSON(),
+      tamanio: this.tamanio,
+      gramosCafe: this.gramosCafe,
+      variedad: {
+        nombre: this.variedad.nombre,
+        precioPorGramo: this.variedad.precioPorGramo,
+        descripcion: this.variedad.descripcion,
+      },
+    };
+  }
 }

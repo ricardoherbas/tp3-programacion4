@@ -9,27 +9,26 @@ export default defineConfig(({ mode }) => {
     return {
         plugins: [react()],
         css: {
-        preprocessorOptions: {
-            scss: {
-            quietDeps: true,
-            silenceDeprecations: ["import", "global-builtin", "color-functions"],
+            preprocessorOptions: {
+                scss: {
+                    quietDeps: true,
+                    silenceDeprecations: ["import", "global-builtin", "color-functions"],
+                },
             },
-        },
         },
         server: {
-        proxy: {
-            "/api": {
-            target,
-            changeOrigin: true,
-            rewrite: (path: string) => path.replace(/^\/api/, ""),
+            proxy: {
+                "/api": {
+                    target,
+                    changeOrigin: true,
+                },
             },
         },
-        },
         test: {
-        environment: "jsdom",
-        setupFiles: ["./src/test/setup.ts"],
-        css: false,
-        restoreMocks: true,
+            environment: "jsdom",
+            setupFiles: ["./src/test/setup.ts"],
+            css: false,
+            restoreMocks: true,
         },
     };
-    });
+});

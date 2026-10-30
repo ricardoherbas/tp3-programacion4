@@ -14,6 +14,7 @@ export default function App() {
                 <EncabezadoMesa mesa={mesa} />
                 <Menu />
                 <Carrito />
+                <ConfirmarPedido mesa={mesa} />
             </main>
         </CarritoProvider>
     );

@@ -3,6 +3,7 @@ import { crearPedido } from "../api/pedidos.api";
 import type { Pedido } from "../api/pedidos.schema";
 import { useCarrito } from "../carrito/CarritoContext";
 import { armarPedido } from "./armarPedido";
+import { SeguimientoPedido } from "./SeguimientoPedido";
 
 type EstadoEnvio =
   | { tipo: "inactivo" }
@@ -47,6 +48,8 @@ export function ConfirmarPedido({ mesa }: { mesa: number | null }) {
           <p>Total: ${envio.pedido.total}</p>
         </div>
       )}
+
+      {envio.tipo === "confirmado" && <SeguimientoPedido pedidoId={envio.pedido.id} />}
     </section>
   );
 }

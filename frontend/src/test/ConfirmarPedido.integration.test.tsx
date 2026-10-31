@@ -30,6 +30,20 @@ function CargarExpreso() {
   );
 }
 
+// tras confirmar, el componente consulta GET /pedidos/:id para el seguimiento
+function responderSeguimiento(id: number, estado: "pendiente" | "confirmado" = "pendiente") {
+  servidor.use(
+    mswHttp.get(`*/pedidos/${id}`, () =>
+      HttpResponse.json({
+        id,
+        estado,
+        total: 7360,
+        items: [{ productoId: 5, cantidad: 1, precioUnitario: 7360, subtotal: 7360 }],
+      }),
+    ),
+  );
+}
+
 function prepararPantalla(mesa: number | null) {
   return render(
     <CarritoProvider>
@@ -64,6 +78,7 @@ describe("ConfirmarPedido (integración con MSW)", () => {
         );
       }),
     );
+    responderSeguimiento(12);
     const usuario = userEvent.setup();
     prepararPantalla(4);
 
@@ -94,6 +109,7 @@ describe("ConfirmarPedido (integración con MSW)", () => {
         );
       }),
     );
+    responderSeguimiento(13);
     const usuario = userEvent.setup();
     prepararPantalla(null);
 
@@ -102,6 +118,31 @@ describe("ConfirmarPedido (integración con MSW)", () => {
 
     expect(await screen.findByText("Pedido N° 13")).toBeInTheDocument();
     expect(cuerpoRecibido).toEqual({ items: [{ productoId: 5, cantidad: 1 }] });
+  });
+
+  it("muestra el seguimiento del pedido recién confirmado", async () => {
+    servidor.use(
+      mswHttp.post("*/pedidos", () =>
+        HttpResponse.json(
+          {
+            id: 14,
+            estado: "pendiente",
+            total: 7360,
+            items: [{ productoId: 5, cantidad: 1, precioUnitario: 7360, subtotal: 7360 }],
+          },
+          { status: 201 },
+        ),
+      ),
+    );
+    responderSeguimiento(14, "confirmado");
+    const usuario = userEvent.setup();
+    prepararPantalla(4);
+
+    await usuario.click(screen.getByRole("button", { name: "Cargar expreso" }));
+    await usuario.click(screen.getByRole("button", { name: "Confirmar pedido" }));
+
+    expect(await screen.findByRole("heading", { name: "Seguimiento del pedido" })).toBeInTheDocument();
+    expect(await screen.findByText("Estado actual: confirmado")).toBeInTheDocument();
   });
 
   it("conserva el carrito si el pedido falla", async () => {

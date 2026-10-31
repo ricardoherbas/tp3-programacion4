@@ -6,3 +6,8 @@ export async function crearPedido(nuevo: NuevoPedido): Promise<Pedido> {
 
   return PedidoSchema.parse(datos);
 }
+export async function obtenerPedido(id: number): Promise<Pedido> {
+  const datos = await http.get<unknown>(`/pedidos/${id}`);
+
+  return PedidoSchema.parse(datos);
+}

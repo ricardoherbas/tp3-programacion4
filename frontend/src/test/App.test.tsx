@@ -48,6 +48,12 @@ describe("App", () => {
         expect(screen.getByText("Pedido sin mesa")).toBeInTheDocument();
     });
 
+    it("ofrece confirmar el pedido, deshabilitado mientras el carrito está vacío", () => {
+        render(<App />);
+
+        expect(screen.getByRole("button", { name: "Confirmar pedido" })).toBeDisabled();
+    });
+
     it("muestra el menú de productos", async () => {
         render(<App />);
 

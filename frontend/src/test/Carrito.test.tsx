@@ -1,16 +1,42 @@
-
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { CarritoProvider } from "../carrito/CarritoContext";
+import { CarritoProvider, useCarrito } from "../carrito/CarritoContext";
 import { Carrito } from "../carrito/Carrito";
+
+// consumidor auxiliar: permite cargar un producto en el carrito a través del Context
+function CargarMuffin() {
+    const { dispatch } = useCarrito();
+
+    return (
+        <button
+            onClick={() =>
+                dispatch({
+                    tipo: "agregar",
+                    producto: { productoId: 19, nombre: "Muffin", precioUnitario: 2500 },
+                })
+            }
+        >
+            Cargar muffin
+        </button>
+    );
+}
 
 function prepararCarrito() {
     return render(
         <CarritoProvider>
+            <CargarMuffin />
             <Carrito />
         </CarritoProvider>,
     );
+}
+
+async function cargarMuffin() {
+    const usuario = userEvent.setup();
+    prepararCarrito();
+    await usuario.click(screen.getByRole("button", { name: "Cargar muffin" }));
+
+    return usuario;
 }
 
 describe("Carrito", () => {
@@ -21,34 +47,50 @@ describe("Carrito", () => {
     });
 
     it("muestra nombre, cantidad y precio unitario del producto", async () => {
-        const usuario = userEvent.setup();
-        prepararCarrito();
+        await cargarMuffin();
 
-        // Este botón de prueba permite cargar un producto mediante el Context.
-        // Se agregará en la siguiente iteración usando un consumidor auxiliar.
+        expect(screen.getByRole("heading", { name: "Muffin" })).toBeInTheDocument();
+        expect(screen.getByText("Cantidad: 1")).toBeInTheDocument();
+        expect(screen.getByText("Precio unitario: $2500")).toBeInTheDocument();
+        expect(screen.queryByText("Tu carrito está vacío")).not.toBeInTheDocument();
     });
 
     it("permite sumar unidades de un producto", async () => {
-        prepararCarrito();
+        const usuario = await cargarMuffin();
 
-        // Se completará cuando el test pueda cargar un producto.
+        await usuario.click(screen.getByRole("button", { name: "Sumar Muffin" }));
+
+        expect(screen.getByText("Cantidad: 2")).toBeInTheDocument();
     });
 
     it("permite restar unidades y quitar el producto al llegar a cero", async () => {
-        prepararCarrito();
+        const usuario = await cargarMuffin();
+        await usuario.click(screen.getByRole("button", { name: "Sumar Muffin" }));
 
-        // Se completará cuando el test pueda cargar un producto.
+        await usuario.click(screen.getByRole("button", { name: "Restar Muffin" }));
+        expect(screen.getByText("Cantidad: 1")).toBeInTheDocument();
+
+        await usuario.click(screen.getByRole("button", { name: "Restar Muffin" }));
+        expect(screen.queryByRole("heading", { name: "Muffin" })).not.toBeInTheDocument();
+        expect(screen.getByText("Tu carrito está vacío")).toBeInTheDocument();
     });
 
     it("permite quitar un producto directamente", async () => {
-        prepararCarrito();
+        const usuario = await cargarMuffin();
+        await usuario.click(screen.getByRole("button", { name: "Sumar Muffin" }));
 
-        // Se completará cuando el test pueda cargar un producto.
+        await usuario.click(screen.getByRole("button", { name: "Quitar Muffin" }));
+
+        expect(screen.queryByRole("heading", { name: "Muffin" })).not.toBeInTheDocument();
+        expect(screen.getByText("Tu carrito está vacío")).toBeInTheDocument();
     });
 
     it("identifica accesiblemente los controles de cada producto", async () => {
-        prepararCarrito();
+        await cargarMuffin();
 
-        // Se completará cuando el test pueda cargar un producto.
+        expect(screen.getByRole("listitem", { name: "Muffin" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Sumar Muffin" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Restar Muffin" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Quitar Muffin" })).toBeInTheDocument();
     });
 });

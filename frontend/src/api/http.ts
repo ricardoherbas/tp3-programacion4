@@ -1,5 +1,29 @@
-
 const API_URL = import.meta.env.VITE_API_URL ?? "/api";
+
+// error de una respuesta HTTP fallida: lleva el mensaje que mandó la API ({ error }) y el status
+export class ErrorApi extends Error {
+  readonly status: number;
+
+  constructor(mensaje: string, status: number) {
+    super(mensaje);
+    this.name = "ErrorApi";
+    this.status = status;
+  }
+}
+
+// la API siempre responde { error: string }; si el cuerpo no es eso, se usa un mensaje genérico
+async function leerMensajeDeError(response: Response): Promise<string | null> {
+  try {
+    const cuerpo: unknown = await response.json();
+
+    if (typeof cuerpo === "object" && cuerpo !== null && "error" in cuerpo && typeof cuerpo.error === "string") {
+      return cuerpo.error;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 interface HttpOptions {
   method: "GET" | "POST" | "PUT" | "DELETE";
@@ -19,8 +43,11 @@ async function request<T>(
   });
 
   if (!response.ok) {
-    throw new Error(
-      `Error HTTP ${response.status}: ${response.statusText}`,
+    const mensaje = await leerMensajeDeError(response);
+
+    throw new ErrorApi(
+      mensaje ?? `Error HTTP ${response.status}: ${response.statusText}`,
+      response.status,
     );
   }
 

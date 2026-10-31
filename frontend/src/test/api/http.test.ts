@@ -1,6 +1,5 @@
-
+import { ErrorApi, http } from "../../api/http";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { http } from "../../api/http";
 
 describe("Cliente HTTP", () => {
   afterEach(() => {
@@ -76,5 +75,37 @@ describe("Cliente HTTP", () => {
     await expect(http.get("/productos")).rejects.toThrow(
       "Error de conexión",
     );
+  });
+
+    it("usa el mensaje { error } que devuelve la API", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        statusText: "Not Found",
+        json: vi.fn().mockResolvedValue({ error: "Producto 5 no encontrado" }),
+      }),
+    );
+
+    const falla = http.get("/productos/5");
+
+    await expect(falla).rejects.toThrow("Producto 5 no encontrado");
+    await expect(falla).rejects.toBeInstanceOf(ErrorApi);
+    await expect(falla).rejects.toMatchObject({ status: 404 });
+  });
+
+  it("usa un mensaje genérico si el cuerpo del error no es JSON", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: "Internal Server Error",
+        json: vi.fn().mockRejectedValue(new SyntaxError("no es JSON")),
+      }),
+    );
+
+    await expect(http.get("/productos")).rejects.toThrow("Error HTTP 500");
   });
 });

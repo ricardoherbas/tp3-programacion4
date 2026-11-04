@@ -1,4 +1,3 @@
-
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -22,7 +21,7 @@ const productos = [
         variedad: {
             nombre: "Brasil",
             precioPorGramo: 140,
-            descripcion: "Café brasileño",
+            descripcion: "Acidez Baja, cuerpo Denso y notas Avellana",
         },
     },
     {
@@ -35,7 +34,20 @@ const productos = [
         variedad: {
             nombre: "Colombia",
             precioPorGramo: 180,
-            descripcion: "Café colombiano",
+            descripcion: "Acidez Media, cuerpo Equilibrado y notas Cítricas y florales",
+        },
+    },
+    {
+        id: 3,
+        nombre: "Expreso Pocillo",
+        precio: 6820,
+        tipo: "expreso" as const,
+        tamanio: "Pocillo",
+        gramosCafe: 18,
+        variedad: {
+            nombre: "Etiopía",
+            precioPorGramo: 240,
+            descripcion: "Acidez Viva, cuerpo Ligero y notas Frutales",
         },
     },
     {
@@ -48,7 +60,7 @@ const productos = [
         variedad: {
             nombre: "Brasil",
             precioPorGramo: 140,
-            descripcion: "Café brasileño",
+            descripcion: "Acidez Baja, cuerpo Denso y notas Avellana",
         },
     },
     {
@@ -61,7 +73,7 @@ const productos = [
         variedad: {
             nombre: "Brasil",
             precioPorGramo: 140,
-            descripcion: "Café brasileño",
+            descripcion: "Acidez Baja, cuerpo Denso y notas Avellana",
         },
     },
 ];
@@ -93,13 +105,15 @@ describe("SelectorCafe", () => {
         ).toBeInTheDocument();
     });
 
-    it("no muestra tamaño ni origen hasta seleccionar el tipo", async () => {
+    it("no muestra el tamaño ni los orígenes hasta seleccionar el tipo", async () => {
         renderSelector();
 
         await screen.findByRole("button", { name: /expreso/i });
 
         expect(screen.queryByLabelText(/tamaño/i)).not.toBeInTheDocument();
-        expect(screen.queryByLabelText(/origen/i)).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Brasil" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Colombia" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Etiopía" })).not.toBeInTheDocument();
     });
 
     it("muestra los tamaños disponibles al seleccionar expreso", async () => {
@@ -115,7 +129,7 @@ describe("SelectorCafe", () => {
         expect(screen.getByRole("option", { name: "Mediano" })).toBeInTheDocument();
     });
 
-    it("muestra las variedades disponibles después de elegir el tamaño", async () => {
+    it("muestra simultáneamente los tres orígenes después de elegir el tamaño", async () => {
         const user = userEvent.setup();
         renderSelector();
 
@@ -125,12 +139,14 @@ describe("SelectorCafe", () => {
 
         await user.selectOptions(screen.getByLabelText(/tamaño/i), "Pocillo");
 
-        expect(screen.getByLabelText(/origen/i)).toBeInTheDocument();
-        expect(screen.getByRole("option", { name: "Brasil" })).toBeInTheDocument();
-        expect(screen.getByRole("option", { name: "Colombia" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Brasil" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Colombia" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Etiopía" })).toBeInTheDocument();
+
+        expect(screen.queryByLabelText(/origen/i)).not.toBeInTheDocument();
     });
 
-    it("muestra el precio devuelto por la API al completar la selección", async () => {
+    it("muestra la descripción de cada origen", async () => {
         const user = userEvent.setup();
         renderSelector();
 
@@ -139,12 +155,36 @@ describe("SelectorCafe", () => {
         );
 
         await user.selectOptions(screen.getByLabelText(/tamaño/i), "Pocillo");
-        await user.selectOptions(screen.getByLabelText(/origen/i), "Brasil");
+
+        expect(
+            screen.getByText("Acidez Baja, cuerpo Denso y notas Avellana"),
+        ).toBeInTheDocument();
+
+        expect(
+            screen.getByText("Acidez Media, cuerpo Equilibrado y notas Cítricas y florales"),
+        ).toBeInTheDocument();
+
+        expect(
+            screen.getByText("Acidez Viva, cuerpo Ligero y notas Frutales"),
+        ).toBeInTheDocument();
+    });
+
+    it("muestra el precio correspondiente a cada origen", async () => {
+        const user = userEvent.setup();
+        renderSelector();
+
+        await user.click(
+            await screen.findByRole("button", { name: /expreso/i }),
+        );
+
+        await user.selectOptions(screen.getByLabelText(/tamaño/i), "Pocillo");
 
         expect(screen.getByText("Precio: $5020")).toBeInTheDocument();
+        expect(screen.getByText("Precio: $5740")).toBeInTheDocument();
+        expect(screen.getByText("Precio: $6820")).toBeInTheDocument();
     });
 
-    it("mantiene deshabilitado agregar al carrito hasta completar la selección", async () => {
+    it("mantiene deshabilitado agregar al carrito hasta seleccionar un origen", async () => {
         const user = userEvent.setup();
         renderSelector();
 
@@ -157,9 +197,17 @@ describe("SelectorCafe", () => {
         await user.click(screen.getByRole("button", { name: /expreso/i }));
 
         expect(boton).toBeDisabled();
+
+        await user.selectOptions(screen.getByLabelText(/tamaño/i), "Pocillo");
+
+        expect(boton).toBeDisabled();
+
+        await user.click(screen.getByRole("button", { name: "Colombia" }));
+
+        expect(boton).toBeEnabled();
     });
 
-    it("agrega al carrito el producto seleccionado con su precio de la API", async () => {
+    it("agrega al carrito el origen seleccionado con su precio devuelto por la API", async () => {
         const user = userEvent.setup();
         renderSelector();
 
@@ -168,14 +216,15 @@ describe("SelectorCafe", () => {
         );
 
         await user.selectOptions(screen.getByLabelText(/tamaño/i), "Pocillo");
-        await user.selectOptions(screen.getByLabelText(/origen/i), "Brasil");
+
+        await user.click(screen.getByRole("button", { name: "Colombia" }));
 
         await user.click(
             screen.getByRole("button", { name: /agregar al carrito/i }),
         );
 
         expect(
-            await screen.findByText("Precio unitario: $5020"),
+            await screen.findByText("Precio unitario: $5740"),
         ).toBeInTheDocument();
 
         expect(screen.getByText("Cantidad: 1")).toBeInTheDocument();

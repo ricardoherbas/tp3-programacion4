@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { obtenerProductos } from "../api/productos.api";
 import type { Producto } from "../api/productos.schema";
@@ -51,12 +50,6 @@ export function SelectorCafe() {
         (producto) => producto.tamanio === tamanio
     );
 
-    const origenes = [
-        ...new Set(
-            cafesTamanio.map((producto) => producto.variedad.nombre)
-        )
-    ];
-
     const productoSeleccionado = cafesTamanio.find(
         (producto) => producto.variedad.nombre === origen
     );
@@ -65,6 +58,10 @@ export function SelectorCafe() {
         setTipo(nuevoTipo);
         setTamanio("");
         setOrigen("");
+    }
+
+    function seleccionarOrigen(nuevoOrigen: string) {
+        setOrigen(nuevoOrigen);
     }
 
     function agregarAlCarrito() {
@@ -87,11 +84,11 @@ export function SelectorCafe() {
     }
 
     if (cargando) {
-        return <p>Cargando opciones de café...</p>;
+        return <p role="status">Cargando opciones de café...</p>;
     }
 
     if (error) {
-        return <p>No se pudieron cargar las opciones de café.</p>;
+        return <p role="alert">No se pudieron cargar las opciones de café.</p>;
     }
 
     return (
@@ -146,31 +143,51 @@ export function SelectorCafe() {
 
             {tamanio !== "" && (
                 <div className="mb-3">
-                    <label htmlFor="origen-cafe" className="form-label">
-                        Origen
-                    </label>
+                    <h3>Elegí el origen de tu café</h3>
 
-                    <select
-                        id="origen-cafe"
-                        className="form-select"
-                        value={origen}
-                        onChange={(event) => setOrigen(event.target.value)}
-                    >
-                        <option value="">Seleccioná un origen</option>
+                    <div className="row g-3">
+                        {cafesTamanio.map((producto) => (
+                            <div className="col-12 col-md-4" key={producto.id}>
+                                <article
+                                    className={`card h-100 ${
+                                        origen === producto.variedad.nombre
+                                            ? "border-primary"
+                                            : ""
+                                    }`}
+                                >
+                                    <div className="card-body">
+                                        <h4 className="card-title">
+                                            {producto.variedad.nombre}
+                                        </h4>
 
-                        {origenes.map((opcion) => (
-                            <option key={opcion} value={opcion}>
-                                {opcion}
-                            </option>
+                                        <p className="card-text">
+                                            {producto.variedad.descripcion}
+                                        </p>
+
+                                        <p className="card-text">
+                                            Precio: ${producto.precio}
+                                        </p>
+
+                                        <button
+                                            type="button"
+                                            className="btn btn-primary"
+                                            aria-pressed={
+                                                origen === producto.variedad.nombre
+                                            }
+                                            onClick={() =>
+                                                seleccionarOrigen(
+                                                    producto.variedad.nombre
+                                                )
+                                            }
+                                        >
+                                            {producto.variedad.nombre}
+                                        </button>
+                                    </div>
+                                </article>
+                            </div>
                         ))}
-                    </select>
+                    </div>
                 </div>
-            )}
-
-            {productoSeleccionado && (
-                <p aria-live="polite">
-                    Precio: ${productoSeleccionado.precio}
-                </p>
             )}
 
             <button
